@@ -1,0 +1,4 @@
+recursive-include feedback_system/templates *.html
+recursive-include feedback_system/static *.css *.js *.png *.ico
+include README.md
+include LICENSE

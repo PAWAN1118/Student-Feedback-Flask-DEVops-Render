@@ -1,0 +1,80 @@
+---
+- name: Deploy Student Feedback Application
+  hosts: local
+  become: false
+
+  vars:
+    image_name:     "student-feedback-system"
+    image_tag:      "latest"
+    container_name: "feedback-app"
+    host_port:      "8090"
+    app_port:       "5000"
+    data_volume:    "feedback_data"
+
+  tasks:
+
+    - name: Print deployment info
+      debug:
+        msg:
+          - "Deploying : {{ image_name }}:{{ image_tag }}"
+          - "Container : {{ container_name }}"
+          - "Port      : {{ host_port }} → {{ app_port }}"
+
+    - name: Create named volume for persistent data
+      command: docker volume create {{ data_volume }}
+      register: volume_result
+      changed_when: volume_result.rc == 0
+
+    - name: Stop existing container
+      command: docker stop {{ container_name }}
+      register: stop_result
+      failed_when: false
+      changed_when: stop_result.rc == 0
+
+    - name: Remove existing container
+      command: docker rm {{ container_name }}
+      register: rm_result
+      failed_when: false
+      changed_when: rm_result.rc == 0
+
+    - name: Start the feedback application container
+      command: >
+        docker run -d
+        --name {{ container_name }}
+        --restart unless-stopped
+        -p {{ host_port }}:{{ app_port }}
+        -v {{ data_volume }}:/data
+        -e DB_PATH=/data/feedback.db
+        -e FLASK_ENV=production
+        {{ image_name }}:{{ image_tag }}
+      register: run_result
+
+    - name: Show container ID
+      debug:
+        msg: "Container started: {{ run_result.stdout[:12] }}"
+
+    - name: Wait for application health check
+      uri:
+        url: "http://host.docker.internal:{{ host_port }}/health"
+        method: GET
+        status_code: 200
+        timeout: 5
+      register: health_check
+      retries: 10
+      delay: 3
+      until: health_check.status == 200
+
+    - name: Deployment complete
+      debug:
+        msg:
+          - "✓ Deployment successful!"
+          - "  URL: http://localhost:{{ host_port }}"
+
+    - name: Show running container
+      command: docker ps --filter name={{ container_name }}
+      register: docker_ps
+      changed_when: false
+
+    - name: Print container status
+      debug:
+        msg: "{{ docker_ps.stdout_lines }}"

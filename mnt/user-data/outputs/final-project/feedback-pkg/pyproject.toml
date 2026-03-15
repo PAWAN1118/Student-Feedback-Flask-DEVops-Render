@@ -1,0 +1,49 @@
+[build-system]
+requires      = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name        = "student-feedback-system"
+version     = "1.0.0"
+description = "A plug-and-play student feedback web application built with Flask"
+readme      = "README.md"
+license     = { text = "MIT" }
+requires-python = ">=3.10"
+
+authors = [{ name = "Student DevOps Lab" }]
+
+keywords = ["flask", "feedback", "education", "web", "devops"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: Flask",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+  "flask>=3.0.0",
+  "gunicorn>=22.0.0",
+  "click>=8.1.0",
+]
+
+[project.urls]
+Homepage   = "https://github.com/PAWAN1118/Student-Feedback-Flask-DEVops"
+Repository = "https://github.com/PAWAN1118/Student-Feedback-Flask-DEVops"
+
+[project.scripts]
+feedback-system = "feedback_system.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+feedback_system = [
+  "templates/*.html",
+  "static/*.css",
+  "static/*.js",
+]
